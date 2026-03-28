@@ -1,5 +1,7 @@
 layout: post
 title: "Turning an old Mac Mini into a Linux machine (Part 1 — USB + dd)"
+
+
 ---
 
 ## Why I did this
@@ -17,3 +19,6 @@ Goal:
 
 I went with Ubuntu Server LTS:
 to be contued....
+
+```markdown
+![mac sticker](/assets/retro_mac_stickers.png)
