@@ -1,7 +1,6 @@
+---
 layout: post
 title: "Turning an old Mac Mini into a Linux machine (Part 1 — USB + dd)"
-
-
 ---
 
 ## Why I did this
