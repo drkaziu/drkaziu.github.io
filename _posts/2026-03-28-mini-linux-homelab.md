@@ -29,3 +29,21 @@ Before INSTALLING, the disk was wiped using Parted Magic — honestly a really g
 - Eject the disk: `diskutil eject /dev/diskX`
 
 Note that on an old Mac Mini, this method caused installation issues (it worked fine on non-Apple machines). Instead, Balena Etcher was used, which handled everything more reliably and saved time debugging boot problems. In any case, the manual approach is a good exercise to understand how data is copied byte by byte — a more raw, low-level experience.
+
+## Handshake
+
+Now it is time to use this headless machine.
+
+- Run `hostname -I` on the server machine to get its IP address, or find it via the router interface
+
+- SSH may not be enabled by default, then run: `sudo systemctl enable ssh` and `sudo systemctl start ssh`
+
+- Update packages using `sudo apt-get update` and `sudo apt-get upgrade`. The `update` command refreshes the package list with available versions, while `upgrade` installs them. Without running `update`, the package list may be outdated
+
+- On the main laptop, connect using: `ssh username@local.ip.add.ress`, where `username` and `local.ip.add.ress` should be replaced with actual values
+
+- Enter the password; if everything works, access to the server is established
+
+- Exit the session using: `exit`
+
+This is a simple setup, but password-based login should be disabled as soon as possible. This will be covered next.
