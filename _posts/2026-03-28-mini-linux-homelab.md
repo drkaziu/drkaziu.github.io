@@ -13,7 +13,7 @@ A brand new Mac Mini bought from eBay had been sitting unused for some time and 
 
 This Mac Mini uses an HDD, so it is inherently slow. On the other hand, it provides a retro-like experience, requiring a bit of patience for things to respond. AI and various tutorials were used to help write this blog, discover tools, and understand commands. All commands here provided considering Mac environment.
 
-![mac sticker](/assets/retro_mac_sticker.png)
+![mac sticker](/assets/retro_mac_sticker.jpeg)
 
 ## HDD Clean
 
