@@ -4,7 +4,7 @@ description: ""
 ---
 
 <div class="home-intro">
-  <img src="/assets/images/avatar.png" alt="avatar" class="home-sticker">
+  <img src="/assets/main_avatar.png" alt="avatar" class="home-sticker">
 
   <p>AI · Python · Homelab · Interesting Tech · Retro</p>
 
