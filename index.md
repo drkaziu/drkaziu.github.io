@@ -3,6 +3,7 @@ layout: home
 description: ""
 ---
 
-AI · Python · Homelab · Interesting finds
+AI · Python · Homelab · Interesting Tech · Retro
 
-Want to share something interesting? ping@badok.ai
+Found something interesting? Let’s trade notes.
+ping@badok.ai · https://badok.ai
