@@ -3,9 +3,13 @@ layout: home
 description: ""
 ---
 
-<img src="/assets/main_avatar.png" alt="avatar" class="home-sticker">
+<div class="home-intro">
+  <img src="/assets/images/avatar.png" alt="avatar" class="home-sticker">
 
-AI · Python · Homelab · Interesting Tech · Retro
+  <p>AI · Python · Homelab · Interesting Tech · Retro</p>
 
-Found signal in the noise?  
-<strong>ping@badok.ai</strong> · <a href="https://badok.ai">badok.ai</a>
+  <p>
+    Found signal in the noise?<br>
+    <strong>ping@badok.ai</strong> · <a href="https://badok.ai">badok.ai</a>
+  </p>
+</div>
