@@ -3,7 +3,7 @@ layout: home
 description: ""
 ---
 
-<img src="/assets/main_avatar.png" alt="avatar" class="home-image">
+<img src="/assets/main_avatar.png" alt="avatar" class="home-sticker">
 
 AI · Python · Homelab · Interesting Tech · Retro
 
