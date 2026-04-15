@@ -9,3 +9,12 @@
   color: #777;
   font-size: 0.9em;
 }
+
+.home-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+  margin: 30px auto 15px;
+}
