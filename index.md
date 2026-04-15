@@ -1,14 +1,6 @@
 ---
 layout: home
-title: Home
+title: Tech Notes
 ---
 
-# Kazimieras B.
-
-Welcome to my tech blog.
-
-I write about:
-- Linux
-- homelab experiments
-- old hardware
-- AI tools
+AI · Python · Homelab · Interesting finds
