@@ -1,6 +1,6 @@
-# Dr. Kazimieras
+# Dr. Kazimieras Tech Notes
 
-AI · Python · Homelab · Interesting finds
+AI · Python · Homelab · Tech Finds
 
 Everyday notes, distilled.
 
