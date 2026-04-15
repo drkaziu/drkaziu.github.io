@@ -3,11 +3,15 @@
 
 @import "minima";
 
-/* Custom footer styling */
 .footer-note {
-  text-align: left;
+  text-align: center;
   color: #777;
   font-size: 0.9em;
+}
+
+.home-intro {
+  overflow: auto;
+  margin-bottom: 30px;
 }
 
 .home-sticker {
