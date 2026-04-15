@@ -1,5 +1,6 @@
 ---
 layout: home
+description: ""
 ---
 
 AI · Python · Homelab · Interesting finds
