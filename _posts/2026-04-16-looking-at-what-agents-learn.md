@@ -1,11 +1,10 @@
 ---
 layout: post
-title: "Learning With Agents"
+title: "Learning with Agents"
 ---
+![agent learning](/assets/b400-9670-e7e6-cdfe.png)
 
 ## Project Idea and Testing Ground
-
-![agent learning](/assets/b400-9670-e7e6-cdfe.png)
 
 Agents don’t just generate code — they adapt to how you work. If you capture that learning, future outputs get better.
 
