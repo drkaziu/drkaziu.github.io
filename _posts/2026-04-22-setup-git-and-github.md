@@ -41,7 +41,7 @@ eval "$(ssh-agent -s)"
 touch ~/.ssh/config
 open ~/.ssh/config
 ```
-
+If file does not already exist*
 Add:
 ```bash
 Host github.com
