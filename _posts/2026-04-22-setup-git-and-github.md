@@ -41,8 +41,8 @@ eval "$(ssh-agent -s)"
 touch ~/.ssh/config
 open ~/.ssh/config
 ```
-If file does not already exist*
-Add:
+*If file does not already exist.
+Then add:
 ```bash
 Host github.com
   AddKeysToAgent yes
