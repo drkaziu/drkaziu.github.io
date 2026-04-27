@@ -5,7 +5,7 @@ date: 2026-04-27
 tags: [ai, image-generation, chatgpt, grok, gemini, tools]
 ---
 
-![AI image generation](/assets/images/ai_slop_king.png)
+![AI image generation](/assets/images/ai_slop_king_joke.png)
 
 ## Testing AI image generation tools
 
@@ -21,9 +21,7 @@ Not an endorsement.
 
 ## Prompt 1: cyberpunk + medieval portrait
 
-```text
-Remake this photo of me to Cyberpunk style image, add elements from Medieval ages, make sure there is not text in any language visible.
-```
+"Remake this photo of me to Cyberpunk style image, add elements from Medieval ages, make sure there is not text in any language visible."
 
 **ChatGPT** created a polished result with a strong neon cyberpunk mood and a visible medieval/fantasy feeling. It followed the “no text” requirement well.
 
@@ -51,9 +49,7 @@ My takeaway: **Grok was stronger for the direct ad/poster format and included sa
 
 ## Prompt 3: investor visual with market-cap numbers
 
-```text
-Make a visual for investors, I will use that as part of a pitch in a funding round. Make me rich. Numbers represent Top 10 highest-value industries by market cap, 2025–2026: Technology — $38.0T; Financial Services — $18.3T; Artificial Intelligence — $17.2T; Software — $15.2T; Tech; Hardware — $13.1T; Banks — $12.2T; Internet — $12.2T; Energy — $11.0T; Electronics — $10.5T; Semiconductors — $10.0T. Make a story, not only show numbers.
-```
+"Make a visual for investors, I will use that as part of a pitch in a funding round. Make me rich. Numbers represent Top 10 highest-value industries by market cap, 2025–2026: Technology — $38.0T; Financial Services — $18.3T; Artificial Intelligence — $17.2T; Software — $15.2T; Tech; Hardware — $13.1T; Banks — $12.2T; Internet — $12.2T; Energy — $11.0T; Electronics — $10.5T; Semiconductors — $10.0T. Make a story, not only show numbers."
 
 For this test, I started a new chat when possible.
 
@@ -67,7 +63,7 @@ My takeaway: **ChatGPT was strong at thinking through the story. Grok made the c
 
 ---
 
-## ClaudeAI
+### ClaudeAI
 
 ClaudeAI was excluded from this comparison because it could not generate images directly in my setup and suggested using other tools instead.
 
@@ -78,6 +74,6 @@ ClaudeAI was excluded from this comparison because it could not generate images 
 My current practical conclusion:
 
 ChatGPT thinks through the image better. Grok often makes the image clearer.
-Gemini can look good, but I would check the details more carefully.
+Gemini can look good, but I would check the details more carefully. Best combo overall - ChatGPT; but Grok very compelling for visuals. Although the price is quite high.
 
 This may change quickly. AI image tools are improving fast, and one model update can change the result completely. Thus, only relevant today.
