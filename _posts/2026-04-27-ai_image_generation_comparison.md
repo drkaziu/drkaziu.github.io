@@ -16,6 +16,7 @@ This is not a benchmark. It is only my personal research, my current opinion, an
 Not an endorsement.
 
 ---
+Experimantal results:
 
 ![AI image generation comparison](/assets/images/ai_tools_comparison.png)
 
@@ -70,8 +71,6 @@ ClaudeAI was excluded from this comparison because it could not generate images 
 ---
 
 ## Overall impression
-
-My current practical conclusion:
 
 ChatGPT thinks through the image better. Grok often makes the image clearer.
 Gemini can look good, but I would check the details more carefully. Best combo overall - ChatGPT; but Grok very compelling for visuals. Although the price is quite high.
