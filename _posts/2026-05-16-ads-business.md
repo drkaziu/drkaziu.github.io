@@ -39,9 +39,13 @@ The diagram shows a schematic platform UI — think a marketplace or a social fe
 A few things worth noticing in the layout:
 
 The **search bar** is prime real estate — highest intent, so highest CPM. Whatever someone is actively searching for is exactly what advertisers want to intercept.
+
 The **feed slot** sits next to organic items and is deliberately hard to distinguish at a glance — that proximity to organic content is intentional and is what makes it valuable.
+
 The **banner** breaks the scroll and commands attention but interrupts the experience most aggressively — the classic UX tension made visible.
+
 The **item page** placement is interesting because the user is already in buying mode, so conversion rates are high even though the audience is smaller.
+
 **Push notifications** are a separate channel entirely — they reach users outside the platform, which is why they're marked in purple rather than amber.
 
 ---
@@ -53,10 +57,15 @@ There can also be unconventional and unexpected placements for ads.
 ![Ad Real Estate Unconventional](/assets/images/ads_inventory_unconventional.png)
 
 These surfaces are interesting precisely because they're unexpected. A few worth highlighting:
+
 **Zero-results page** is arguably the most underrated slot. The user searched for something the platform can't supply — that's a user with specific intent and no organic result competing for their attention. A brand can step in perfectly.
+
 **In-chat sponsored message** might be most distinctive surface. The chat thread between buyer and seller is where the transaction actually happens — injecting a shipping partner offer ("send with DPD for €2.49") feels like a service, not an intrusion, which is why it converts well.
+
 **Listing creation flow** flips the model — instead of targeting buyers, it targets sellers at the moment they're most engaged with a specific category. A laundry brand appearing while someone lists a pile of clothes is contextually perfect.
+
 **Post-purchase screen** is the highest-trust moment in any commerce app — the user just had a positive experience, their guard is down, and they're emotionally receptive. It's chronically undermonetised relative to its value.
+
 **Loading/skeleton screens** exploit captive attention: there's nothing to scroll, nothing to tap, so the eye has nowhere else to go. Brief but highly visible.
 
 ---
