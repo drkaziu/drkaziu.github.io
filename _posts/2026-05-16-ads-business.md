@@ -278,7 +278,7 @@ The fix for all of these is the same process: after a model ships, collect a hel
 
 You need to turn vague goals like “maximize good revenue” into mathematical logic balancing revenue, relevance, advertiser value, and UX.
 
-![Objective Function Interactive](/assets/images/objective_function_interactive.html)
+![Objective Function Interactive](/assets/interactive/objective_function_interactive.html)
 
 ---
 
