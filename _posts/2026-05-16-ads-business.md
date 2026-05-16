@@ -70,7 +70,7 @@ These surfaces are interesting precisely because they're unexpected. A few worth
 
 ---
 
-## Advertiser objective
+## Advertiser Objective
 
 What the advertiser wants: impressions, clicks, purchases, app installs, brand awareness, or marketplace engagement.
 
@@ -197,5 +197,148 @@ The eligibility engine combines rules with AND/OR logic. An advertiser might set
 The four targeting modes differ by what data they use. Broad match uses only platform-level category signals — no user-level data needed, which makes it privacy-safe but imprecise. Retargeting is the highest-intent mode: the user already visited the product or added it to a cart, so the ad is a reminder, not an introduction. Lookalike targeting finds users who statistically resemble past converters — it extends the reach of retargeting to cold audiences without requiring them to have visited before. Contextual targeting uses only the current page content and no personal history at all, which has become increasingly important as cookie tracking and mobile identifiers are being restricted.
 
 Location and device are often underestimated as signals. Location determines not just geography but shipping feasibility — there is no point showing an ad for a seller who cannot ship to the user's country. Device shapes the creative format and the conversion path: mobile users convert differently from desktop users, and app users differently from browser users.
+
+---
+
+## Candidate Selection
+
+Before ranking, the system must retrieve a smaller set of possible ads/items from a huge pool of eligible candidates.
+
+![Ad Targeting](/assets/images/candidate_selection.png)
+
+The funnel shape is the right mental model here — each stage is cheaper than the next, and the whole point is to make the expensive final stage as small as possible.
+
+The key insight is in the bottom box: the full ranker is computationally heavy — it runs a complex model that evaluates bid, predicted CTR, quality score, and constraints simultaneously. Doing that for 10 million candidates on every page load, within 100ms, is physically impossible. Candidate selection is the engineering solution that makes ranking tractable.
+
+Each stage has a different character:
+
+Hard filters are deterministic and instant — pure database lookups. "Does this ad have an active budget? Does it target this user's country? Is it in the right category?" No ML involved, just boolean logic. This is where the bulk of candidates are eliminated cheaply.
+
+Embedding retrieval is the most interesting stage. Both the user context and each ad are encoded as vectors in a shared semantic space. Finding the nearest neighbours to the user vector — ads that are semantically closest to what the user is looking at — can be done in milliseconds using approximate nearest neighbour (ANN) algorithms like FAISS or ScaNN. This is how the system finds relevant ads even when there's no exact keyword match: "linen trousers" can surface ads for "summer chinos" because they're close in embedding space.
+
+The light scorer is a fast, shallow model — maybe a few decision tree layers or a tiny neural network — that runs on the ~10K survivors and prunes the bottom half quickly. It's a cheap approximation of the full ranker's judgment. The cost of running it on 10K items is trivial compared to running the full ranker on even 1K.
+
+By the time the full ranker sees the candidate set, it's dealing with ~100–500 items — all of which are already known to be eligible, semantically relevant, and roughly worthwhile. The ranker can then apply its full cost, running a deep model that would have been unthinkable at 10M scale.
+
+---
+
+## Prediction Models
+
+Models estimate probabilities such as *will this user click?*, *will this convert?*, or *will this ad harm engagement?*
+
+![Prediction Models](/assets/images/prediction_models.png)
+
+Three models, one decision — but the roles are distinct and the failure modes are completely different.
+
+pCTR is the workhorse. It feeds directly into the eCPM formula (bid × pCTR), which means every ranking decision in the entire system runs through it thousands of times per second. The model is typically a deep neural network trained on logged user interactions — click or no-click — with hundreds of features spanning user history, ad creative, slot position, time of day, and query context. Position bias is a significant training challenge: ads shown in slot 1 get clicked more simply because they're in slot 1, which inflates their apparent CTR. Models must correct for this, usually by injecting position as a feature or using inverse propensity weighting.
+
+pCVR is slower and sparser to train. Conversions happen far less frequently than clicks, so the signal is noisy — for niche categories, a new ad might have zero conversions in its first days of running. Platforms typically address this with Bayesian priors (assume a new ad converts at the category average until evidence accumulates), hierarchical models (borrow signal from similar ads), or cascaded models (predict pCVR given a click, then combine with pCTR to get the end-to-end expected conversion probability).
+
+The harm model is structurally different — it is a veto rather than a weight. Where pCTR and pCVR contribute additively to expected value, a high harm score can suppress an ad entirely, regardless of its bid or predicted performance. What counts as "harm" varies: repeat exposure to the same user, low-quality creative that increases app abandonment, categories associated with high return rates, or formats that slow page load. Some platforms run multiple specialised harm models rather than one — a separate model for engagement harm, one for brand safety, one for seller quality.
+
+The calibration point at the bottom is the subtlest and most important. A model that correctly ranks ads relative to each other but outputs systematically inflated or deflated probabilities will break the eCPM formula — because eCPM is used not just for ranking but for setting the actual price charged. If pCTR = 0.10 but only 2% of such impressions actually click, the platform overcharges advertisers and the whole pricing model becomes unstable. Calibration — ensuring that a predicted probability of 3% corresponds to a real-world frequency of ~3% — is maintained through regular recalibration passes using held-out data, temperature scaling, and isotonic regression.
+
+---
+
+## Calibration
+
+Predicted probabilities must match reality; if a model says 15% click probability, roughly 15% should actually click. The graph perfectly illustrates the concept. The gap between the dot (what the model predicts) and the cross (what should happen in a perfect world) is calibration error made visible.
+
+- Perfect callibration
+
+![Perfect Callibration](/assets/images/perfect_callibration_graph.png)
+
+- Overconfident model
+
+![Overconfident Model](/assets/images/overconfident_callibration_graph.png)
+
+- Callibration error
+
+![Callibration Error](/assets/images/underconfident_callibration_graph.png)
+
+- Systematically biased
+
+![Systematically Biased](/assets/images/systematically_biased_graph.png)
+
+Four failure modes, each with a different financial consequence:
+
+A perfectly calibrated model's curve runs along the diagonal. pCTR = 5% means 5 in 100 impressions actually produce a click. The eCPM formula works as designed — bid × 0.05 × quality score produces a number that correctly reflects expected value, and advertisers are charged fairly.
+
+An overconfident model's curve bends below the diagonal — it thinks clicks are more likely than they are. At high predicted probabilities, the actual rate is much lower. eCPM is inflated, so advertisers overpay for each slot. When they later measure campaign performance and see the true CTR, they conclude the platform is expensive relative to results, and they reduce spend or leave. The damage is slow but structural.
+
+An underconfident model bends above the diagonal — it systematically under-predicts. eCPM is too low, good ads are ranked below their true value, the platform earns less than it should, and the ranking order is distorted. Budget is not allocated where it would do the most work.
+
+A systematically biased model is the worst case: it might be miscalibrated in different directions at different probability levels — typically compressing the middle range (predicting 5–15% as 8–12%) or having a position bias baked in (slot 1 ads always predicted higher than they should be). This creates a ranking that's not just inaccurate but inconsistently inaccurate — impossible to correct uniformly.
+
+The fix for all of these is the same process: after a model ships, collect a held-out set of impressions with known outcomes, plot the predicted vs actual curve, measure the gap (Expected Calibration Error, or ECE), then apply temperature scaling or isotonic regression to bend the curve back toward the diagonal. This recalibration pass runs regularly — often weekly — because model predictions drift as user behaviour changes.
+
+---
+
+## Objective Functions
+
+You need to turn vague goals like “maximize good revenue” into mathematical logic balancing revenue, relevance, advertiser value, and UX.
+
+![Objective Function Interactive](/assets/images/objective_function_interactive.html)
+
+---
+
+## Auctions and Bidding
+
+Ads often compete through auctions where bid, predicted quality, and relevance determine winner and price.
+
+![Placeholder](/assets/images/placeholder.png)
+
+---
+
+## Pacing
+
+Spending advertiser budgets smoothly over time instead of exhausting them too early or underdelivering.
+
+![Placeholder](/assets/images/placeholder.png)
+
+---
+
+## Budget Allocation
+
+Deciding where limited ad budget should go across users, markets, placements, campaigns, and time periods.
+
+![Placeholder](/assets/images/placeholder.png)
+---
+
+## Exploration vs Exploitation
+
+The system must exploit known good ads while exploring uncertain ones to learn better long-term performance.
+
+![Placeholder](/assets/images/placeholder.png)
+---
+
+## A/B Testing for Ads Systems
+
+You must design experiments that detect impact on revenue, clicks, conversions, users, sellers, and long-term marketplace health.
+
+![Placeholder](/assets/images/placeholder.png)
+
+---
+
+## Ads Diagnostics
+
+When performance drops, you must identify whether the cause is ranking, targeting, auction dynamics, budget limits, supply-demand imbalance, tracking, or model drift.
+
+![Placeholder](/assets/images/placeholder.png)
+
+---
+## Feedback Loops and Bias 
+
+Ads systems learn from what they show, so bad ranking can create biased training data and reinforce itself.
+
+![Placeholder](/assets/images/placeholder.png)
+
+---
+## Multi-Objective Constrained Optimization 
+
+The hard part: optimize revenue, advertiser ROI, marketplace fairness, user engagement, privacy, latency, and business strategy at the same time.
+
+![Placeholder](/assets/images/placeholder.png)
+
 
 
