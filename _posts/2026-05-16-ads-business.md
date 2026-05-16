@@ -4,6 +4,7 @@ title: "Ads Business 101"
 date: 2026-05-16
 tags: [ads, data, business]
 ---
+Advertising systems sit at the intersection of machine learning, microeconomics, and product engineering — and if you can hold all three in your head at once, you will find that most of what looks like complexity is actually a small set of well-defined trade-offs, repeated at scale and at speed. This is my attempt to work through that complexity, built with AI as a thinking partner.
 
 ![Ads intro](/assets/images/ads_intro.png)
 
@@ -351,21 +352,65 @@ The practical challenge is that "the day" is not uniform. Auction volume is 10×
 
 Deciding where limited ad budget should go across users, markets, placements, campaigns, and time periods.
 
-![Placeholder](/assets/images/placeholder.png)
+![Ads Budget Allocation](/assets/images/budget_allocation.png)
+
+Five dimensions radiate from one fixed budget, and the core challenge is that they are not independent — a decision on one constrains all the others.
+
+Each dimension has its own logic for how to split:
+
+Campaigns are the highest-level split and the most strategic. The classic tension is between awareness (broad reach, hard to measure, long payback) and conversion (narrow targeting, easy to measure, short payback). Most advertisers over-invest in conversion campaigns because the attribution is clear, and systematically under-invest in awareness because the return is diffuse and delayed. Platforms encourage awareness spend partly for this reason — it's genuinely valuable but undersupplied.
+
+Markets are split by opportunity size and historical efficiency. A market with high ROAS gets more budget; a new market gets a test allocation until it earns a larger share. The failure mode is over-concentration: pouring budget into one market because it has clear data while ignoring markets where the data is thin but the opportunity might be large.
+
+Placements differ in cost, intent level, and conversion path. Search has the highest intent but limited inventory. Feed has scale but lower intent. Allocating across placements is essentially a portfolio problem — you want enough inventory in each to fill your budget, but you want to weight toward the placements with the best return for your specific objective.
+
+User segments create the most interesting tension. Retargeting (previous visitors, abandoned carts) has very high conversion rates and low acquisition cost per conversion — but the audience is finite and saturates quickly. Prospecting (new users via lookalike or broad targeting) has lower conversion rates but is the only way to grow. Budget split here is directly a bet on growth rate vs short-term efficiency.
+
+Time periods interact with pacing but operate at a different level — pacing distributes spend within a day, whereas time allocation decides which days or hours get more budget. Dayparting (concentrating spend in peak hours) can dramatically improve ROAS for some categories — a food delivery app should weight evenings heavily; a B2B SaaS should weight weekday business hours.
+
+The three methods at the bottom represent the maturity curve of how advertisers manage this complexity. Rule-based allocation is where everyone starts — 40% to conversion, 30% to awareness, 20% to retargeting, 10% to new markets. It's predictable and auditable but rigid. Optimised allocation uses performance signals to continuously shift budget toward whatever is producing the best return — effective but can collapse into a single segment if not constrained. Portfolio management is the most sophisticated approach: campaigns share a pool and a central optimizer reallocates daily or even hourly, subject to minimum spend floors per segment to prevent complete neglect of long-term goals.
+
 ---
 
 ## Exploration vs Exploitation
 
 The system must exploit known good ads while exploring uncertain ones to learn better long-term performance.
 
-![Placeholder](/assets/images/placeholder.png)
+![Explore vs Exploit in Ads](/assets/images/explore_exploit.png)
+
+The regret chart is the key visual. Regret is the cumulative cost of not always showing the best possible ad — the gap between what you earned and what you could have earned with perfect information. All three strategies accumulate regret, but their curves diverge:
+
+Pure exploitation accumulates regret slowly at first, because it confidently shows known-good ads. But it misses the fact that some untested ads might be even better, and that gap compounds permanently. The curve never flattens — it keeps climbing at a steady rate because the system never discovers what it's missing.
+
+Pure exploration accumulates regret quickly — you're constantly showing uncertain ads, many of which are bad, and paying the cost in wasted impressions. The curve eventually slows as every ad becomes well-understood, but by then enormous budget has been burned on bad placements.
+
+A balanced strategy (UCB or Thompson sampling) pays slightly more regret early — it does explore, and some of that exploration is costly — but the curve bends and flattens over time as it learns which ads are genuinely good and stops wasting budget on the confirmed bad ones. The long-run regret is sublinear, meaning the cost of uncertainty shrinks relative to total traffic.
+
+The cold-start problem in the bottom box is worth dwelling on. A new ad enters the system with zero impressions and zero clicks — its predicted CTR is undefined, so the pCTR model falls back to a category prior (e.g. "fashion ads average 2%"). That prior gets it a few impressions. If those impressions produce no clicks, the model updates downward and the ad sinks in ranking. But maybe it was just bad luck — 10 impressions is a tiny sample. Without a deliberate exploration mechanism, the ad may never accumulate enough data to be evaluated fairly. This is why platforms often give new ads an "exploration budget" — a guaranteed floor of impressions regardless of predicted CTR — specifically to break this cycle.
+
+The three strategies differ in sophistication. Epsilon-greedy is the easiest to implement and explain to advertisers ("10% of your traffic is used for testing"). UCB adds an explicit uncertainty bonus to each ad's score: ads with fewer impressions get a boost proportional to how uncertain their estimated CTR is, so the system naturally gravitates toward testing the most uncertain candidates first. Thompson sampling goes further — it maintains a probability distribution over each ad's true CTR, samples from it at decision time, and shows whichever ad's sample is highest. This naturally concentrates exploration on ads where the distribution is wide (uncertain) and exploitation on ads where it is narrow (well-understood), without any manually tuned ε parameter.
+
 ---
 
 ## A/B Testing for Ads Systems
 
 You must design experiments that detect impact on revenue, clicks, conversions, users, sellers, and long-term marketplace health.
 
-![Placeholder](/assets/images/placeholder.png)
+![Ads AB Test](/assets/images/ab_testing_ads.png)
+
+Ad system experiments are structurally harder than product experiments because the outcomes are entangled across four different stakeholders simultaneously — and each stakeholder's signals move at a different speed.
+
+The metric layer stack is the central idea. You cannot reduce an ad experiment to a single primary metric. A change that raises RPM but increases ad complaints is not straightforwardly good — you've found short-term revenue by damaging long-term engagement. A change that improves CTR but buries organic seller listings shifts value from sellers to advertisers in a way that may erode marketplace supply over months. Every experiment needs to be read across all five layers before a decision is made, and the layers must be read in order of time horizon: revenue moves in hours, marketplace health moves in weeks.
+
+The three validity threats are specific to marketplace ad experiments and don't appear in standard product A/B testing:
+
+Network interference is the most technically difficult. In a two-sided marketplace, the control and treatment groups share the same inventory pool. If the treatment group generates more impressions at lower CPM (because relevance improved and competition increased), advertisers in the control group see their bids go further — they get more for the same spend. The control group is contaminated, and the measured lift is understated. The standard fix is to randomise at the market or seller level rather than the user level — geo-based holdouts, where one city sees the control and another sees the treatment, break the interference at the cost of reduced statistical power.
+
+Novelty effect is familiar from product experiments but hits ad formats especially hard. A new ad unit design gets extra clicks simply because it's new — users notice it, curiosity drives clicks, and the CTR looks excellent. Run the same format for four weeks and the effect fades as users habituate. Experiments need to run long enough (typically two to four weeks) that novelty wears off before you read the result.
+
+Budget reallocation bias is subtler. Sophisticated advertisers monitor campaign performance in near-real-time. If their ads in the treatment bucket are performing better, they shift budget toward that campaign — which increases auction competition in the treatment, raising prices and changing the dynamics the experiment was designed to measure. The group assignment is still random, but the bids are no longer comparable.
+
+The three decision outcomes in the bottom row reflect the reality that "statistically significant" is not sufficient for a ship decision. A result can be significant and still wrong — significant revenue lift with significant user harm is a hold, not a ship. The bar for killing is lower than the bar for shipping: evidence of harm is acted on faster than evidence of benefit, which is the correct asymmetry for a system users depend on.
 
 ---
 
@@ -373,21 +418,80 @@ You must design experiments that detect impact on revenue, clicks, conversions, 
 
 When performance drops, you must identify whether the cause is ranking, targeting, auction dynamics, budget limits, supply-demand imbalance, tracking, or model drift.
 
-![Placeholder](/assets/images/placeholder.png)
+![Ads Diagnostics](/assets/images/ads_diagnostics.png)
+
+The triage order at the bottom is the most practically useful thing in the diagram. Every experienced ads engineer learns this the hard way: before you touch a model, recheck targeting logic, or raise bids — rule out tracking failure first. A broken pixel or a lost conversion tag looks identical to every other performance drop in your dashboard metrics. Conversions cliff, ROAS collapses, the on-call engineer starts blaming the ranking model — but the system is working perfectly and nobody is measuring it correctly. This happens after iOS privacy updates, after tag manager deploys, after third-party SDK upgrades. Always check event logs and pixel firing before anything else.
+
+Budget exhaustion comes next because it's equally fast to diagnose and equally deceptive. Delivery cliffing — impressions going to zero at a specific time of day — is the giveaway. If you see this pattern, look at pacing logs before you look at anything else.
+
+Auction dynamics are trickier because they're external. A drop in win rate with a simultaneous rise in clearing price means competitors have entered your inventory. The fix is not a model change — it's a bid adjustment or quality score improvement. Mistaking a competitive shift for a ranking failure and rolling back a model is a classic error.
+
+Ranking and targeting failures are often confused with each other. The distinguishing signal is where in the pipeline the numbers shrink. If candidate volume (the output of retrieval) is normal but eCPM scores are suddenly lower, the ranking model has a problem — a feature pipeline failure, a bad model deployment, a training data issue. If candidate volume itself shrank, the targeting or retrieval system is the problem — a user feature lookup failing silently, a segment definition that's now returning empty, an embedding index that hasn't been refreshed.
+
+Model drift is the slowest and most insidious. It doesn't cliff — it degrades over weeks. The signal is calibration: pCTR predictions that used to match observed CTR start diverging, slowly and then faster. Seasonal behaviour shifts (summer vs. winter buying patterns), platform changes (a new ad format that the model wasn't trained on), or changes in user demographics all cause drift without any code change. The only durable fix is continuous retraining on recent data combined with automated calibration monitoring that fires an alert when the predicted-vs-actual gap exceeds a threshold.
 
 ---
+
 ## Feedback Loops and Bias 
 
 Ads systems learn from what they show, so bad ranking can create biased training data and reinforce itself.
 
-![Placeholder](/assets/images/placeholder.png)
+![Ads Bias Feedback Loops](/assets/images/feedback_loops_bias.png)
+
+The red cycle at the top is the core mechanism. Once an ad wins slot 1, it accumulates clicks — not because it's necessarily the best ad, but because slot 1 always gets more attention. Those clicks go into the training log. The model retrains on that log and learns that this ad is high-quality. It ranks the ad first again. The cycle locks in, and the feedback loop does the rest.
+
+This is not a bug in one system — it's a structural property of any system that learns from its own outputs. Every recommendation system, search engine, and content feed faces the same dynamic. The difference in ad systems is that money flows through the rankings, so the consequences are financial and the biases are commercially exploitable.
+
+The three bias types are distinct problems that compound each other:
+
+Position bias is the most quantified. Slot 1 in a typical feed or search result receives roughly 8–10× the clicks of slot 5, holding ad quality constant. This has been measured through randomised position experiments where the same ad is randomly assigned different slots. The effect is so large that a mediocre ad in slot 1 will appear to outperform an excellent ad in slot 4 in any naive CTR comparison.
+
+Exposure bias is the invisible half. An ad that never gets shown has no click signal at all — the model treats this as evidence that it has low CTR, when actually it has no information. The model penalises uncertainty the same way it penalises poor performance, which means new and unlucky ads spiral downward not because they're bad but because they haven't had the chance to prove themselves.
+
+Selection bias is the meta-problem: the training data is not a random sample of ad-user-context combinations. It's a highly non-random sample of exactly the combinations the current model preferred. You cannot train your way out of this without changing what you show.
+
+The three debiasing techniques address the problem from different angles. Inverse propensity scoring (IPS) is a statistical correction applied during training — each click is reweighted by the inverse of the probability that the ad was shown in that position. A slot-1 click is downweighted because it was very likely to happen regardless of ad quality; a slot-5 click is upweighted because it's a stronger signal. This corrects for position bias without changing what the system shows, but requires accurate propensity estimates.
+
+Forced exploration directly generates counterfactual data by randomly promoting low-ranked ads into high positions on a small fraction of traffic. This is expensive (short-term revenue loss) but produces unbiased training signal. It's the only way to discover whether a currently low-ranked ad might actually be very good.
+
+Counterfactual machine learning attempts to estimate what would have happened to an ad in positions it was never shown, using causal modelling and logged behaviour. It's the most technically ambitious approach and the most actively researched — but requires careful model assumptions to avoid simply learning a different kind of bias.
+
+The bottom box is the philosophical root: you are epistemically blind to the outcomes you didn't cause. Every click you observe is a consequence of a decision you already made. The only way out is to make some decisions randomly, accept the short-term cost, and use that randomness to see the counterfactual world your model is hiding from you.
 
 ---
+
 ## Multi-Objective Constrained Optimization 
 
 The hard part: optimize revenue, advertiser ROI, marketplace fairness, user engagement, privacy, latency, and business strategy at the same time.
 
-![Placeholder](/assets/images/placeholder.png)
+Two diagrams: first the structure of the problem (what objectives conflict with what), then how the system actually resolves it in practice.
+
+The tension map comes first — the objectives don't all pull in the same direction, and understanding which pairs conflict is the foundation of everything else.
+
+![Ads Tension Model Map](/assets/images/moco_tension_map.png)
+
+The tension map makes the hardness of the problem visible. Revenue and fairness are in strong conflict — the most efficient revenue extraction concentrates ads on high-bidding advertisers, which crowds out small sellers. Advertiser ROI and privacy are in strong conflict — the richer the user profile, the better the targeting, but privacy regulation deliberately degrades that profile. These aren't solvable tensions; they're permanent trade-offs that the system must navigate on every auction call.
+
+Now the resolution structure — how does an actual system handle seven conflicting objectives at once?
+
+![Ads Tension Model Map Extended](/assets/images/moco_resolution_structure.png)
+
+The resolution structure is the practical answer to a theoretically intractable problem. You cannot simultaneously maximise seven conflicting objectives, so real systems decompose the problem into three ordered layers.
+
+**Layer 1** converts some objectives into hard constraints — binary gates rather than continuous trade-offs. Latency is the clearest example: an ad that misses the 100ms serving deadline simply doesn't run, regardless of how good its eCPM is. The deadline is not a weight in a formula; it's a veto. Privacy floors work the same way: if a user hasn't consented to tracking, their ad targeting is degraded whether the system would prefer it or not. By converting objectives into constraints, you remove them from the optimisation problem and make the remaining problem tractable. This is also a governance mechanism — constraints are harder to override than weights.
+
+**Layer 2** is the weighted objective function from earlier in this series — the place where policy is expressed as arithmetic. The critical insight on the diagram is that weights are value judgements, not technical parameters. Deciding that fairness should have weight 3 and revenue weight 5 is a product decision that encodes what the company believes a marketplace should do. When a regulator asks "why does your system favour large advertisers?", the honest answer lives in these weights.
+
+**Layer 3** — the latency budget — shapes which models can be used at all. A deep neural network that would produce better relevance predictions than a gradient-boosted tree is irrelevant if it adds 80ms of inference time. This creates a continuous engineering pressure: any improvement in model quality that doesn't also fit the latency budget cannot ship. The cascade architecture is the practical resolution: use a fast, cheap model to score the full candidate set, then reserve the expensive model for the top 50 candidates where it matters most.
+
+The Pareto frontier at the bottom is the conceptual foundation. For two objectives — say revenue and UX — the set of configurations where you cannot improve one without worsening the other forms a curve. Every point on that curve is "optimal" in the sense that nothing is being wasted. The choice of where on the curve to operate is a values decision. Moving off the frontier means you've found an improvement — you can get more of both — and that's engineering. Moving along the frontier is politics.
+
+
+---
+
+### Afterword
+
+The engineer who understands why calibration matters, what the weights in an objective function actually say about a company's values, and where a performance drop is most likely hiding — that person is not just useful in an ads team; they are the person the team calls when the dashboard turns red at 11pm on a Friday, which is, as it turns out, the most reliable measure of whether you genuinely understand the system or merely know the vocabulary.
 
 
 
