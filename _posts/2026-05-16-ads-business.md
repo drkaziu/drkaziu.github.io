@@ -74,7 +74,7 @@ These surfaces are interesting precisely because they're unexpected. A few worth
 
 What the advertiser wants: impressions, clicks, purchases, app installs, brand awareness, or marketplace engagement.
 
-![Advertiser Objectives](/assets/images/adsvertiser_objectives.png)
+![Advertiser Objectives](/assets/images/advertiser_objectives.png)
 
 The funnel shape is the key structural idea here — advertiser objectives aren't equal, they map to different stages of a buyer's journey, and the audience gets smaller (and more valuable) as you go deeper.
 
@@ -90,6 +90,47 @@ A few things worth noting across the four stages:
 
 ---
 
-## Placeholder
+## User Experience Guardrails
+
+Ads must not make the app feel spammy, irrelevant, slow, or unfair to organic sellers.
+
+Four guardrails, each with its own failure mode sitting in the corner — the secondary nodes show what breaks when the guardrail is ignored.
+
+A few things worth unpacking:
+
+**Spamminess** is the most visible guardrail and the one platforms track most carefully. Frequency caps (how many times one user sees one ad) and slot ratios (e.g. no more than 1 ad per 4 organic items) are the main levers. Violating this triggers ad blindness — users stop seeing ads entirely, which is worse than showing fewer.
+
+**Relevance** is both a UX guardrail and a revenue mechanism. An irrelevant ad wastes the slot and annoys the user; a relevant one feels like a useful suggestion. This is why platforms invest heavily in targeting infrastructure — better targeting makes ads feel less like ads.
+
+**Performance** is the most technically concrete guardrail. Ad creatives (especially video, interactive, or retargeted) can add hundreds of kilobytes to a page load. On mobile, every 100ms of added latency measurably increases bounce rate. Platforms enforce file size limits and lazy-load ad assets to protect core app speed.
+
+**Fairness to organic sellers** is the most politically sensitive guardrail — and the most specific to marketplace apps. If the top 8 search results are all sponsored, small sellers with no ad budget become invisible regardless of product quality. This erodes their trust in the platform, they list elsewhere, supply thins, and the whole marketplace degrades. The fix is structural: cap the number of sponsored slots per page and label them clearly so users can still choose to scroll past.
+
+---
+
+## Core Ads Metrics
+
+Understand impressions, clicks, CTR, CVR, CPC, CPM, CPA, ROAS, revenue per mille, fill rate, and ad load. This is a rich set of 11 metrics — the best approach is two diagrams: one showing how the metrics are derived from the same raw events (so you see the relationships), then one showing which metrics belong to which perspective (supply side vs. demand side).
+
+First, the derivation chain — everything flows from the same three raw events.
+
+![Advertiser Objectives](/assets/images/ads_metrics_derivation.png)
+
+The derivation structure is the key insight: every metric is just arithmetic on the same three raw counts — impressions, clicks, conversions. CTR and CVR are efficiency ratios between adjacent events. CPM/CPC/CPA tell you what the advertiser paid per event. RPM, fill rate, and ad load are the platform's own view of its supply health.
+
+Now the second diagram — same metrics, but arranged by who cares about them and why.
+
+![Advertiser Objectives](/assets/images/ads_metrics_perspectives.png)
+
+The perspective split is what makes the metrics make sense. A few things worth noting across both diagrams:
+
+CTR and CVR form a chain: CTR tells you if the creative and targeting are working (did anyone care enough to click?), CVR tells you if the landing page and offer are working (did anyone care enough to buy?). Low CTR with high CVR means good offer, bad targeting. High CTR with low CVR means good targeting, bad offer.
+
+CPM vs. CPC vs. CPA is really about risk allocation. CPM: platform takes no risk, advertiser pays regardless of outcome. CPC: risk shared — platform only earns if someone clicks. CPA: most of the risk shifts to the platform or ad network, so CPA prices are much higher per unit, compensating for that guarantee.
+
+RPM vs. CPM is an important distinction people miss. CPM is what the advertiser agreed to pay per thousand impressions. RPM is what the platform actually received per thousand impressions — accounting for unsold inventory, discounts, and ad network cuts. RPM is almost always lower than CPM, and the gap between them is a measure of how efficiently the platform is monetising its supply.
+
+Fill rate and ad load are the platform's two levers for supply health. Fill rate below 100% means some slots went unsold (wasted inventory). Ad load measures how much of the experience is ads — too high and UX degrades, too low and revenue is left on the table.
+
 
 
