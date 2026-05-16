@@ -278,7 +278,24 @@ The fix for all of these is the same process: after a model ships, collect a hel
 
 You need to turn vague goals like “maximize good revenue” into mathematical logic balancing revenue, relevance, advertiser value, and UX.
 
-![Objective Function Interactive](/assets/interactive/objective_function_interactive.html)
+<iframe
+  src="/assets/interactive/objective_function_interactive.html"
+  width="100%"
+  height="650"
+  style="border: 1px solid #ddd; border-radius: 12px;"
+></iframe>
+
+Try the four presets, then drag the sliders manually — the winner changes without any of the underlying ad data changing at all. That's the core insight: the objective function is the policy. Choosing weights is not a technical detail, it's a values decision disguised as arithmetic.
+
+A few things the widget makes visible:
+
+Revenue-first is a trap with a slow fuse. Ad A wins immediately, revenue looks good in the weekly report, but its low pCTR and poor UX score mean users gradually tune out — engagement drifts down, the CTR the model was trained on becomes stale, and in six months the pCTR predictions are broken. You've taught the system to prefer ads that users dislike.
+
+UX-first undermonetises. Ad C has a beautiful experience score but a bid of 2. The platform leaves money on the table on every impression, which means fewer resources to improve the product, which eventually degrades the experience anyway. A marketplace that can't sustain its revenue can't maintain its supply either.
+
+Seller-fairness mode is the most politically complex. It deliberately handicaps large advertisers to give smaller sellers visibility. This is a legitimate policy choice — it protects the diversity of the marketplace — but it comes at a cost to allocative efficiency. The advertiser willing to pay the most is not always the one who gets shown. Platforms make this tradeoff explicitly or implicitly, and it shapes the entire character of the marketplace.
+
+The formula shown in the widget is a weighted linear combination — the simplest possible form. Real objective functions add non-linearities (logarithmic bid dampening to prevent pure pay-to-win), interaction terms (relevance × bid rather than just relevance + bid), and hard constraints that sit outside the objective entirely (a harm score above a threshold is a veto, not just a penalty). The linear version is useful for building intuition; the real version is messier and more defensible.
 
 ---
 
