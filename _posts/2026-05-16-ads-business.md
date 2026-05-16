@@ -281,7 +281,7 @@ You need to turn vague goals like “maximize good revenue” into mathematical 
 <iframe
   src="/assets/interactive/objective_function_interactive.html"
   width="100%"
-  height="1000"
+  height="800"
   style="border: 1px solid #ddd; border-radius: 12px;"
 ></iframe>
 
@@ -303,7 +303,27 @@ The formula shown in the widget is a weighted linear combination — the simples
 
 Ads often compete through auctions where bid, predicted quality, and relevance determine winner and price.
 
-![Placeholder](/assets/images/placeholder.png)
+![Auction Explainer](/assets/images/auction_explainer.png)
+
+The quality score is the key mechanic to internalise. Ad A bids €12 but has quality 0.4, so its eCPM is €4.80. Ad B bids only €7 but has quality 0.9, giving eCPM €6.30. Ad B wins despite the lower bid. This is the same multiplication from ranking — quality isn't an additive bonus, it's a multiplier that can completely invert the bid order.
+
+The three auction types differ in one dimension: what does the winner actually pay?
+
+Second-price (Vickrey) is the theoretical ideal. The winner pays what the second-place bidder would have needed to win — not their own bid. This creates a dominant strategy: bid your true value, because the price you pay is set by someone else. There's no advantage to bidding low (you might lose) or high (you pay your own inflated bid in a first-price world, but not here). Honest bidding is the equilibrium, which means the auction efficiently allocates the slot to whoever values it most. Google's AdWords used this design from the beginning — it was one of the reasons the system scaled so cleanly.
+
+First-price reverses the incentive. The winner pays exactly what they bid, so everyone shades their bids below true value to avoid the "winner's curse" of overpaying. The resulting game theory is messier — advertisers need to predict competitors' bids to set their own optimally, which creates an arms race of bidding algorithms. Many programmatic display exchanges switched from second-price to first-price around 2019, partly because publishers felt second-price was systematically underpricing their inventory.
+
+Generalised second-price (GSP) extends the mechanism to multiple slots — a search results page might have three ad positions, each with different click-through rates. Each slot's winner pays the minimum they'd need to maintain their position: the eCPM of the bidder just below them, divided by their own quality score. GSP isn't theoretically equivalent to a repeated Vickrey auction (it can produce non-truthful equilibria), but it's simple enough to implement at scale and the incentive distortions are usually small in practice.
+
+One important real-world detail: the "bid" an advertiser submits is almost never the price they pay. The actual clearing price is computed by the auction mechanism after all bids are in — and in most platforms it's further adjusted by bid floors (minimum acceptable prices), reserve prices (the platform's own implicit bid to not show any ad rather than a low-quality one), and occasionally price shading algorithms that adjust submitted bids downward before the auction runs.
+
+In practical words:
+
+The bar chart in section 1 makes the quality-multiplier effect immediately visible — Ad A's €12 bid shrinks to a shorter bar than Ad B's €7 bid, simply because 0.4 vs 0.9 is a bigger difference than €12 vs €7. That's the whole game.
+
+Section 2 shows why second-price is the canonical design. Ad B wins with eCPM €6.30, but pays €6.00 — not €7.00 (its own bid) and not €6.30 (its own eCPM). The clearing price is derived from the runner-up: 2nd eCPM (€5.40) divided by the winner's quality (0.9). The winner captures the gap between what they were willing to pay and what the market required — that surplus is the advertiser's reward for having good quality.
+
+Section 3 makes the price comparison concrete. Same bids, same winner, three different prices: €6.00 in second-price, €7.00 in first-price, and a cascade of prices in GSP depending on which slot. First-price's €7.00 price is why rational advertisers shade their bids downward there — they know they'll pay exactly what they bid, so they guess what competitors might bid and bid just above that. It's strategically complex and produces less efficient allocation than second-price.
 
 ---
 
@@ -311,7 +331,19 @@ Ads often compete through auctions where bid, predicted quality, and relevance d
 
 Spending advertiser budgets smoothly over time instead of exhausting them too early or underdelivering.
 
-![Placeholder](/assets/images/placeholder.png)
+![Pacing Explainer](/assets/images/pacing_explainer.png)
+
+Three panels, one idea: spend should track a straight line from zero to budget across the day — anything that deviates from that line is a failure in one direction or another.
+
+The throttle mechanism in the middle section is the core engineering. At any moment, the system computes a pacing ratio: actual spend divided by expected spend at this time of day. If expected spend at 09:00 is 37.5% of budget (9/24 hours elapsed) and the campaign has already spent 55%, the ratio is 1.47 — well ahead. The system responds by randomly skipping a fraction of eligible auction requests, proportional to how far ahead the campaign is. No bid is changed, no quality signal is altered — the campaign simply sits out some auctions it would otherwise have entered. When the ratio falls back toward 1, it re-enters full participation.
+
+This random throttling matters because the alternative — stopping cold and restarting — creates visible gaps in coverage and disturbs the delivery patterns that downstream reporting relies on.
+
+Front-loading is the most common failure mode and usually has a structural cause: high bids compete aggressively in the cheap early-morning auctions (when few other advertisers are bidding), burn through budget by mid-morning, and disappear exactly when user traffic peaks in the evening. The advertiser pays for a day's worth of impressions but gets a morning's worth of reach.
+
+Underdelivery is the opposite problem and harder to diagnose because it can come from many places: targeting too narrow to find enough eligible auctions, bid floor too low to win any, creative rejected by quality filters, or simply a category with thin inventory. The platform fails to serve what was paid for, and the advertiser — who may not notice for days — loses trust in the system's reliability.
+
+The practical challenge is that "the day" is not uniform. Auction volume is 10× higher at 20:00 than at 04:00. A purely time-proportional pacing target is naïve — spending 37.5% of budget by 09:00 means spending it during low-traffic hours, which is wasteful. Sophisticated pacing systems model historical traffic patterns by hour and day-of-week to produce a non-linear target curve, so the campaign enters prime-time auctions with budget still available to compete.
 
 ---
 
