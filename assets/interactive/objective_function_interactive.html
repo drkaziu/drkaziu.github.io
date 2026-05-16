@@ -1,0 +1,164 @@
+
+<style>
+.obj-term { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.obj-label { font-size:13px; color:var(--color-text-secondary); width:130px; flex-shrink:0; }
+.obj-val { font-size:13px; font-weight:500; width:36px; text-align:right; flex-shrink:0; }
+.bar-track { flex:1; height:6px; background:var(--color-border-tertiary); border-radius:3px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; transition:width .2s; }
+.score-pill { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500; }
+.winner { background:var(--color-background-success); color:var(--color-text-success); }
+.loser { background:var(--color-background-secondary); color:var(--color-text-secondary); }
+.preset-btn { cursor:pointer; padding:5px 12px; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); background:transparent; color:var(--color-text-secondary); font-size:12px; transition:all .15s; }
+.preset-btn:hover, .preset-btn.active { background:var(--color-background-secondary); color:var(--color-text-primary); border-color:var(--color-border-primary); }
+</style>
+
+<h2 class="sr-only">Interactive objective function builder showing how different weight settings change which ad wins</h2>
+
+<div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;">
+  <button class="preset-btn active" onclick="applyPreset('balanced')">Balanced</button>
+  <button class="preset-btn" onclick="applyPreset('revenue')">Revenue-first</button>
+  <button class="preset-btn" onclick="applyPreset('ux')">UX-first</button>
+  <button class="preset-btn" onclick="applyPreset('seller')">Seller-fair</button>
+</div>
+
+<div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:10px;">Objective weights</div>
+
+<div class="obj-term">
+  <span class="obj-label">Revenue (bid)</span>
+  <input type="range" min="0" max="10" value="5" step="1" id="w-rev" style="flex:1;" oninput="recalc()">
+  <span class="obj-val" id="v-rev">5</span>
+</div>
+<div class="obj-term">
+  <span class="obj-label">Relevance (pCTR)</span>
+  <input type="range" min="0" max="10" value="5" step="1" id="w-rel" style="flex:1;" oninput="recalc()">
+  <span class="obj-val" id="v-rel">5</span>
+</div>
+<div class="obj-term">
+  <span class="obj-label">Conversion (pCVR)</span>
+  <input type="range" min="0" max="10" value="4" step="1" id="w-cvr" style="flex:1;" oninput="recalc()">
+  <span class="obj-val" id="v-cvr">4</span>
+</div>
+<div class="obj-term">
+  <span class="obj-label">UX quality</span>
+  <input type="range" min="0" max="10" value="4" step="1" id="w-ux" style="flex:1;" oninput="recalc()">
+  <span class="obj-val" id="v-ux">4</span>
+</div>
+<div class="obj-term">
+  <span class="obj-label">Seller fairness</span>
+  <input type="range" min="0" max="10" value="3" step="1" id="w-fair" style="flex:1;" oninput="recalc()">
+  <span class="obj-val" id="v-fair">3</span>
+</div>
+
+<div style="font-size:11px;font-family:var(--font-mono);color:var(--color-text-tertiary);margin:8px 0 20px;padding:8px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);" id="formula-display">
+  score = 5·bid + 5·pCTR + 4·pCVR + 4·ux − 3·harm + 3·fairness
+</div>
+
+<div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:12px;">Three candidate ads — who wins?</div>
+
+<div id="candidates" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+<div style="margin-top:20px;padding:14px 16px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
+  <div style="font-size:13px;font-weight:500;margin-bottom:4px;" id="insight-title">Balanced mode</div>
+  <div style="font-size:13px;color:var(--color-text-secondary);" id="insight-body">No single factor dominates. Ad B wins because it combines reasonable bid with strong relevance and conversion — the workhorse of a healthy marketplace.</div>
+</div>
+
+<script>
+const ads = [
+  { name:'Ad A', desc:'High bid, low relevance', bid:9, pCTR:2, pCVR:2, ux:3, harm:1, fair:4, color:'#534AB7' },
+  { name:'Ad B', desc:'Moderate bid, high relevance', bid:5, pCTR:8, pCVR:7, ux:8, harm:1, fair:7, color:'#1D9E75' },
+  { name:'Ad C', desc:'Low bid, perfect UX fit', bid:2, pCTR:5, pCVR:4, ux:10, harm:0, fair:9, color:'#BA7517' },
+];
+
+const presets = {
+  balanced: { rev:5, rel:5, cvr:4, ux:4, fair:3,
+    title:'Balanced mode',
+    body:'No single factor dominates. Ad B wins because it combines reasonable bid with strong relevance and conversion — the workhorse of a healthy marketplace.' },
+  revenue: { rev:10, rel:2, cvr:2, ux:1, fair:1,
+    title:'Revenue-first mode',
+    body:'Ad A wins on bid alone. Short-term revenue spikes, but irrelevant ads damage engagement and CTR eventually falls — the budget-extraction trap.' },
+  ux: { rev:2, rel:6, cvr:5, ux:10, fair:5,
+    title:'UX-first mode',
+    body:'Ad C wins: low bid but perfect experience fit. Sustainable engagement but the platform under-monetises. Sellers with small budgets get promoted over willing big spenders.' },
+  seller: { rev:3, rel:5, cvr:4, ux:5, fair:10,
+    title:'Seller-fairness mode',
+    body:'Ad C wins again. Small sellers are protected from being buried by big advertisers. Good for marketplace health long-term, but may suppress efficient price discovery.' },
+};
+
+function score(ad, w) {
+  return w.rev * ad.bid + w.rel * ad.pCTR + w.cvr * ad.pCVR + w.ux * ad.ux - 3 * ad.harm + w.fair * ad.fair;
+}
+
+function getWeights() {
+  return {
+    rev: +document.getElementById('w-rev').value,
+    rel: +document.getElementById('w-rel').value,
+    cvr: +document.getElementById('w-cvr').value,
+    ux:  +document.getElementById('w-ux').value,
+    fair:+document.getElementById('w-fair').value,
+  };
+}
+
+function recalc() {
+  const w = getWeights();
+  document.getElementById('v-rev').textContent  = w.rev;
+  document.getElementById('v-rel').textContent  = w.rel;
+  document.getElementById('v-cvr').textContent  = w.cvr;
+  document.getElementById('v-ux').textContent   = w.ux;
+  document.getElementById('v-fair').textContent = w.fair;
+
+  document.getElementById('formula-display').textContent =
+    `score = ${w.rev}·bid + ${w.rel}·pCTR + ${w.cvr}·pCVR + ${w.ux}·ux − 3·harm + ${w.fair}·fairness`;
+
+  const scores = ads.map(a => ({ ad:a, s: score(a, w) }));
+  const maxS = Math.max(...scores.map(s => s.s));
+  const minS = Math.min(...scores.map(s => s.s));
+  const range = maxS - minS || 1;
+
+  scores.sort((a,b) => b.s - a.s);
+
+  const container = document.getElementById('candidates');
+  container.innerHTML = '';
+  scores.forEach((item, i) => {
+    const pct = Math.round(((item.s - minS) / range) * 100);
+    const isWinner = i === 0;
+    const div = document.createElement('div');
+    div.style.cssText = `padding:12px 14px;border-radius:var(--border-radius-md);border:${isWinner ? '1.5px solid '+item.ad.color : '0.5px solid var(--color-border-tertiary)'};background:var(--color-background-primary);`;
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div>
+          <span style="font-size:14px;font-weight:500;color:${item.ad.color};">${item.ad.name}</span>
+          <span style="font-size:12px;color:var(--color-text-tertiary);margin-left:8px;">${item.ad.desc}</span>
+        </div>
+        <span class="score-pill ${isWinner ? 'winner' : 'loser'}">${isWinner ? 'Winner' : '#'+(i+1)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${item.ad.color};opacity:${isWinner?1:0.4};"></div></div>
+        <span style="font-size:13px;font-weight:500;min-width:42px;text-align:right;color:${item.ad.color};">${Math.round(item.s)}</span>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--color-text-tertiary);">
+        <span>bid ${item.ad.bid}/10</span>
+        <span>pCTR ${item.ad.pCTR}/10</span>
+        <span>pCVR ${item.ad.pCVR}/10</span>
+        <span>ux ${item.ad.ux}/10</span>
+        <span>fair ${item.ad.fair}/10</span>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function applyPreset(name) {
+  const p = presets[name];
+  document.getElementById('w-rev').value  = p.rev;
+  document.getElementById('w-rel').value  = p.rel;
+  document.getElementById('w-cvr').value  = p.cvr;
+  document.getElementById('w-ux').value   = p.ux;
+  document.getElementById('w-fair').value = p.fair;
+  document.getElementById('insight-title').textContent = p.title;
+  document.getElementById('insight-body').textContent  = p.body;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  recalc();
+}
+
+recalc();
+</script>
