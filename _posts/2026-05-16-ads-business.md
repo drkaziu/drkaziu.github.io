@@ -94,6 +94,8 @@ A few things worth noting across the four stages:
 
 Ads must not make the app feel spammy, irrelevant, slow, or unfair to organic sellers.
 
+![UX Guardrails](/assets/images/ux_guardrails.png)
+
 Four guardrails, each with its own failure mode sitting in the corner — the secondary nodes show what breaks when the guardrail is ignored.
 
 A few things worth unpacking:
@@ -114,13 +116,13 @@ Understand impressions, clicks, CTR, CVR, CPC, CPM, CPA, ROAS, revenue per mille
 
 First, the derivation chain — everything flows from the same three raw events.
 
-![Advertiser Objectives](/assets/images/ads_metrics_derivation.png)
+![Ads Metrics](/assets/images/ads_metrics_derivation.png)
 
 The derivation structure is the key insight: every metric is just arithmetic on the same three raw counts — impressions, clicks, conversions. CTR and CVR are efficiency ratios between adjacent events. CPM/CPC/CPA tell you what the advertiser paid per event. RPM, fill rate, and ad load are the platform's own view of its supply health.
 
 Now the second diagram — same metrics, but arranged by who cares about them and why.
 
-![Advertiser Objectives](/assets/images/ads_metrics_perspectives.png)
+![Ads Metrics Perspectives](/assets/images/ads_metrics_perspectives.png)
 
 The perspective split is what makes the metrics make sense. A few things worth noting across both diagrams:
 
@@ -132,5 +134,22 @@ RPM vs. CPM is an important distinction people miss. CPM is what the advertiser 
 
 Fill rate and ad load are the platform's two levers for supply health. Fill rate below 100% means some slots went unsold (wasted inventory). Ad load measures how much of the experience is ads — too high and UX degrades, too low and revenue is left on the table.
 
+---
 
+## Marketplace Relevance
 
+An ad is not good just because it pays. It must be relevant to the user, context, category, intent, and marketplace behavior.
+
+![Marketplace Relevance](/assets/images/marketplace_relevance.png)
+
+Five signals feed one score, and that score is a gate — not a ranking. The ad either clears the relevance threshold and enters the auction, or it gets filtered before bidding even begins. A high bid from an irrelevant ad loses to a lower bid from a relevant one, which is the core design principle.
+
+The five signals are worth distinguishing:
+
+**User and context** (purple) answer *who is here and where are they right now*. User signals are slow-moving — they accumulate over sessions and reflect stable preferences. Context signals are fast — they describe this specific moment: someone on a search results page at 9pm on mobile behaves differently than the same person on a product page at noon on desktop.
+
+**Category and intent** (teal) answer *what are they looking for*. Category is coarse-grained — does the ad's product type match what the user is browsing? Intent is fine-grained — what did their search query actually say, how recently, and how deeply did they engage with similar items? A search for "vintage denim jacket" carries far stronger intent than passively scrolling a feed.
+
+**Marketplace behaviour** (amber) is the track record signal — and it's the most distinctive to marketplace apps. A seller with a history of disputes and returns gets their ads penalised even if the bid is high. The historical CTR of the specific ad creative is also fed back in: an ad that nobody clicks gets deprioritised because past performance predicts future performance. This is why new ads sometimes need a "warming up" period.
+
+The two-outcome split at the top makes an important point: relevance filtering is not the same as auction ranking. Filtering happens first and is binary. Only ads that clear it enter the second stage, where price and predicted CTR are combined into an effective CPM that determines the final ranking. High payment is necessary but not sufficient — relevance is the entry fee.
