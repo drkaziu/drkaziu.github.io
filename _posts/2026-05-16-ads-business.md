@@ -70,7 +70,26 @@ These surfaces are interesting precisely because they're unexpected. A few worth
 
 ---
 
-## Placeholder
+## Advertiser objective
 
+What the advertiser wants: impressions, clicks, purchases, app installs, brand awareness, or marketplace engagement.
+
+![Advertiser Objectives](/assets/images/adsvertiser_objectives.png)
+
+The funnel shape is the key structural idea here — advertiser objectives aren't equal, they map to different stages of a buyer's journey, and the audience gets smaller (and more valuable) as you go deeper.
+
+A few things worth noting across the four stages:
+
+**Awareness** is the most expensive in absolute terms but the hardest to measure. You're paying for eyeballs with no guarantee of action, which is why CPM dominates here. Brand advertisers — fashion labels, car makers, FMCG (fast-moving consumer goods - these are everyday products that sell quickly and are bought often) — live at this stage.
+
+**Consideration** is where intent signals start appearing. Someone clicking an ad is raising their hand. CPC pricing shifts some risk to the platform — if nobody clicks, the advertiser pays nothing.
+
+**Conversion** is where e-commerce advertisers concentrate most of their budget. CPA and ROAS (Return on ad spend) become the language — not "how many people saw this" but "how many euros came back for every euro spent." App install campaigns also live here; the install is the conversion event.
+
+**Retention** is the most underrated stage. Acquiring a new customer costs 5–7× more than keeping an existing one, so re-engagement ads (push notifications, loyalty promos, email-triggered display) targeting people who already bought are extremely high-ROAS by comparison — but few platforms build proper inventory for it.
+
+---
+
+## Placeholder
 
 
