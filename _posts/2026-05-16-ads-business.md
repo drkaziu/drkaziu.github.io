@@ -153,3 +153,49 @@ The five signals are worth distinguishing:
 **Marketplace behaviour** (amber) is the track record signal — and it's the most distinctive to marketplace apps. A seller with a history of disputes and returns gets their ads penalised even if the bid is high. The historical CTR of the specific ad creative is also fed back in: an ad that nobody clicks gets deprioritised because past performance predicts future performance. This is why new ads sometimes need a "warming up" period.
 
 The two-outcome split at the top makes an important point: relevance filtering is not the same as auction ranking. Filtering happens first and is binary. Only ads that clear it enter the second stage, where price and predicted CTR are combined into an effective CPM that determines the final ranking. High payment is necessary but not sufficient — relevance is the entry fee.
+
+---
+
+## Ranking
+
+Deciding which ad or promoted item should appear first based on predicted value, relevance, bid, quality, and constraints.
+
+![Ad Ranking Pipeline](/assets/images/ad_ranking_pipeline.png)
+
+The pipeline has two exit points — both before the final slot is filled. Now the scoring formula itself deserves its own diagram, because the multiplication of three factors is the core idea most people miss.
+
+![Ad Ranking Score](/assets/images/ad_ranking_score_anatomy.png)
+
+The two diagrams tell a complete story. The pipeline shows the sequence of gates; the score anatomy shows why high payment alone is not enough.
+
+A few things worth internalising:
+
+The pipeline has two kill points, not one. Most people assume ranking is a single competition where the highest bidder wins. In reality, relevance filtering happens first — an irrelevant ad never enters the auction at all. Then after scoring, constraint application can suppress a top-scoring ad (e.g. it's already been shown to this user twice today, or it's in a category the platform has limited). Bid only matters in the middle stage.
+
+The multiplication in eCPM is the key mechanic. If quality and relevance were added as bonuses — **bid + quality + CTR** — then a very high bid could always compensate for being irrelevant. Multiplication means that a near-zero predicted CTR collapses the whole score regardless of bid. This is intentional: it makes the system self-correcting. Ads that nobody clicks get penalised into irrelevance, which aligns advertiser and platform incentives around actual user response.
+
+Ad B in the example wins with €2.00 vs Ad A's €4.00 because its relevance lifts predicted CTR from 0.5% to 3.2% — a 6.4× difference that no bid advantage can overcome. This is why marketplaces invest so heavily in targeting infrastructure: better targeting raises predicted CTR, which raises eCPM, which means the platform earns more even from the same bid pool.
+
+Constraints at stage 4 protect things bid and quality cannot: frequency (don't annoy the same user), diversity (don't show five ads from one category in a row), and brand safety (don't place a children's toy ad next to a violent item listing). These are hard overrides — no score is high enough to bypass them.
+
+---
+
+## Targeting
+
+Choosing which users or contexts should be eligible for an ad using signals like category interest, browsing behavior, location, device, and intent.
+
+![Ad Targeting](/assets/images/ad_targeting.png)
+
+Five signal types, one eligibility gate, four targeting modes in the bottom row. The colour split is meaningful — purple signals are about the user's history (slow-moving, accumulated across sessions), teal signals are about the current context (fast, specific to this moment), and amber is the live intent signal which is both the strongest and the most perishable.
+
+A few distinctions worth unpacking:
+
+Category interest vs intent is a temporal difference. Category interest says "this person has generally been interested in fashion over the past two weeks." Intent says "this person just typed 'linen summer dress' 40 seconds ago." Both are valuable, but they serve different campaign goals — interest drives brand awareness, intent drives conversion. The best campaigns layer both: the user must have shown category interest and have a live signal.
+
+The eligibility engine combines rules with AND/OR logic. An advertiser might set: "target users in Lithuania AND who browsed footwear in the last 7 days AND on mobile." All three conditions must hold. Relaxing one to OR widens reach but reduces precision. Advertisers constantly tune this tradeoff — narrow targeting wastes fewer impressions but may not fill the budget; broad targeting fills budget but pays for clicks that don't convert.
+
+The four targeting modes differ by what data they use. Broad match uses only platform-level category signals — no user-level data needed, which makes it privacy-safe but imprecise. Retargeting is the highest-intent mode: the user already visited the product or added it to a cart, so the ad is a reminder, not an introduction. Lookalike targeting finds users who statistically resemble past converters — it extends the reach of retargeting to cold audiences without requiring them to have visited before. Contextual targeting uses only the current page content and no personal history at all, which has become increasingly important as cookie tracking and mobile identifiers are being restricted.
+
+Location and device are often underestimated as signals. Location determines not just geography but shipping feasibility — there is no point showing an ad for a seller who cannot ship to the user's country. Device shapes the creative format and the conversion path: mobile users convert differently from desktop users, and app users differently from browser users.
+
+
