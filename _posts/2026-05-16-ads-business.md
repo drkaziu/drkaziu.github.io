@@ -249,19 +249,19 @@ Predicted probabilities must match reality; if a model says 15% click probabilit
 
 - Perfect callibration
 
-![Perfect Callibration](/assets/images/perfect_callibration_graph.png)
+![Perfect Callibration](/assets/images/perfect_callibration_graph_v2.png)
 
 - Overconfident model
 
-![Overconfident Model](/assets/images/overconfident_callibration_graph.png)
+![Overconfident Model](/assets/images/overconfident_callibration_graph_v2.png)
 
-- Callibration error
+- Underconfident model
 
-![Callibration Error](/assets/images/underconfident_callibration_graph.png)
+![Callibration Error](/assets/images/underconfident_callibration_graph_v2.png)
 
 - Systematically biased
 
-![Systematically Biased](/assets/images/systematically_biased_graph.png)
+![Systematically Biased](/assets/images/systematically_biased_graph_2.png)
 
 Four failure modes, each with a different financial consequence:
 
