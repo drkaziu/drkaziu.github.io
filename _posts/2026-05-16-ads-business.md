@@ -2,10 +2,9 @@
 layout: post
 title: "Ads Business 101"
 date: 2026-05-16
+updated: 2026-05-19
 tags: [ads, data, business]
 ---
-
-*Updated 2026-05-19*
 
 Advertising systems sit at the intersection of machine learning, microeconomics, and product engineering — and if you can hold all three in your head at once, you will find that most of what looks like complexity is actually a small set of well-defined trade-offs, repeated at scale and at speed. This is my attempt to work through that complexity, built with AI as a thinking partner.
 
@@ -285,7 +284,7 @@ You need to turn vague goals like “maximize good revenue” into mathematical 
 <iframe
   src="/assets/interactive/objective_function_interactive.html"
   width="100%"
-  height="900"
+  height="880"
   style="border: 1px solid #ddd; border-radius: 12px;"
 ></iframe>
 
