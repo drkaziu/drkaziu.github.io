@@ -284,7 +284,7 @@ You need to turn vague goals like “maximize good revenue” into mathematical 
 <iframe
   src="/assets/interactive/objective_function_interactive.html"
   width="100%"
-  height="880"
+  height="890"
   style="border: 1px solid #ddd; border-radius: 12px;"
 ></iframe>
 
