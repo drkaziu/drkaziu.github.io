@@ -8,7 +8,7 @@ tags: [ads, data, business]
 
 Advertising systems sit at the intersection of machine learning, microeconomics, and product engineering — and if you can hold all three in your head at once, you will find that most of what looks like complexity is actually a small set of well-defined trade-offs, repeated at scale and at speed. This is my attempt to work through that complexity, built with AI as a thinking partner.
 
-![Ads intro](/assets/images/ads_intro.png)
+![Ads intro](/assets/images/ads_intro_v2.jpg)
 
 ## Ads Business Model
 
@@ -247,19 +247,19 @@ The calibration point at the bottom is the subtlest and most important. A model 
 
 Predicted probabilities must match reality; if a model says 15% click probability, roughly 15% should actually click. The graph perfectly illustrates the concept. The gap between the dot (what the model predicts) and the cross (what should happen in a perfect world) is calibration error made visible.
 
-- Perfect callibration
+- **Perfect callibration:**
 
 ![Perfect Callibration](/assets/images/perfect_callibration_graph_v2.png)
 
-- Overconfident model
+- **Overconfident model:**
 
 ![Overconfident Model](/assets/images/overconfident_callibration_graph_v2.png)
 
-- Underconfident model
+- **Underconfident model:**
 
 ![Callibration Error](/assets/images/underconfident_callibration_graph_v2.png)
 
-- Systematically biased
+- **Systematically biased:**
 
 ![Systematically Biased](/assets/images/systematically_biased_graph_2.png)
 
