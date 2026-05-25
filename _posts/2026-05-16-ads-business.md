@@ -8,7 +8,7 @@ tags: [ads, data, business]
 
 Advertising systems sit at the intersection of machine learning, microeconomics, and product engineering — and if you can hold all three in your head at once, you will find that most of what looks like complexity is actually a small set of well-defined trade-offs, repeated at scale and at speed. This is my attempt to work through that complexity, built with AI as a thinking partner.
 
-![Ads intro](/assets/images/ads_intro_v2.jpg)
+![Ads intro](/assets/images/ads_intro_v2.jpeg)
 
 ## Ads Business Model
 
