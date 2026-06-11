@@ -1,0 +1,354 @@
+---
+layout: post
+title: "Docker Local Setup 101"
+date: 2026-06-11
+updated: 2026-06-11
+tags: [docker, sql-server, development]
+---
+
+Docker is one of those tools that feels abstract until it is applied to a real local development problem. A common example is running Microsoft SQL Server locally without turning the operating system into a messy development machine full of global installs, drivers, background services, and forgotten configuration.
+
+This post documents a simple learning path: what Docker does, how Docker Desktop fits into the setup, which commands matter first, how Microsoft SQL Server can be run in a container, how it can be reached from DBeaver, and how the container, data volume, and image can be removed afterwards.
+
+The main idea is simple: Docker makes it possible to run software in isolated containers. Instead of installing SQL Server directly into macOS, SQL Server can be run as a separate environment. When the environment is no longer needed, it can be stopped, removed, or fully reset.
+
+## Why Docker Desktop
+
+On a Mac, the easiest way to start is Docker Desktop. It provides the graphical app, the Docker command line tools, and the background engine needed to run containers.
+
+After installing it, the first test command is:
+
+```bash
+docker run hello-world
+```
+
+This command does not start a serious app. It simply checks that Docker works. Docker looks for a tiny `hello-world` image, downloads it if needed, creates a container from it, runs it, prints a confirmation message, and stops.
+
+It is similar to running:
+
+```bash
+python --version
+```
+
+but for Docker.
+
+## The Basic Mental Model
+
+Docker has three main objects worth understanding at the beginning.
+
+| Concept | Meaning | Simple analogy |
+|---|---|---|
+| Image | A reusable template for creating containers | Installer or blueprint |
+| Container | A running instance created from an image | Running app |
+| Volume | Persistent storage used by containers | Saved data folder |
+
+This distinction matters because deleting a container does not always delete the data.
+
+For example, with SQL Server:
+
+| Action | What happens |
+|---|---|
+| Remove container | SQL Server process is removed |
+| Keep volume | Database files remain saved |
+| Remove volume | Database files are deleted |
+| Remove image | Downloaded SQL Server template is deleted |
+
+## Main Docker Commands
+
+These are the commands worth understanding first.
+
+| Need | Command | What it does |
+|---|---|---|
+| Check Docker version | `docker --version` | Shows installed Docker version |
+| Test Docker | `docker run hello-world` | Runs a tiny test container |
+| See running containers | `docker ps` | Shows active containers |
+| See all containers | `docker ps -a` | Shows active and stopped containers |
+| See downloaded images | `docker images` | Lists images stored locally |
+| Run a container | `docker run IMAGE_NAME` | Starts a new container from an image |
+| Stop a container | `docker stop NAME_OR_ID` | Stops a running container |
+| Remove a container | `docker rm NAME_OR_ID` | Deletes a stopped container |
+| View logs | `docker logs NAME_OR_ID` | Shows container logs |
+| Follow live logs | `docker logs -f NAME_OR_ID` | Streams logs live |
+| Enter a running container | `docker exec -it NAME_OR_ID bash` | Opens shell inside a container |
+| Start Compose services | `docker compose up -d` | Starts services in the background |
+| Stop Compose services | `docker compose down` | Stops and removes Compose containers |
+| View Compose logs | `docker compose logs -f` | Streams logs from Compose services |
+| Remove unused Docker objects | `docker system prune` | Cleans unused containers, networks, and cache |
+
+At the beginning, the most useful commands are:
+
+```bash
+docker ps
+docker ps -a
+docker images
+docker logs -f NAME_OR_ID
+docker compose up -d
+docker compose down
+```
+
+## Why Docker Compose
+
+For quick tests, `docker run` is fine.
+
+For real local development, Docker Compose is usually better because the setup is written in a file. That means the environment can be saved, repeated, edited, reviewed, and version controlled.
+
+Instead of running a long command manually, a `compose.yaml` file can define the service. The environment can then be started with:
+
+```bash
+docker compose up -d
+```
+
+And stopped with:
+
+```bash
+docker compose down
+```
+
+This is cleaner and more professional than relying on long one line commands.
+
+## Project Folder
+
+A simple local folder structure can look like this:
+
+```bash
+mkdir -p ~/Code/sqlserver-local
+cd ~/Code/sqlserver-local
+```
+
+Inside it:
+
+```text
+sqlserver-local/
+  compose.yaml
+  .env
+```
+
+The `.env` file stores the password so that it is not hardcoded directly inside `compose.yaml`.
+
+Example `.env`:
+
+```env
+MSSQL_SA_PASSWORD=YourStrongPassword123!
+```
+
+For real projects, `.env` should usually not be committed to Git.
+
+## Running Microsoft SQL Server in Docker
+
+The Compose file can look like this:
+
+```yaml
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    container_name: sqlserver-local
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+```
+
+The important parts are:
+
+| Line | Why it matters |
+|---|---|
+| `image` | Uses the official Microsoft SQL Server image |
+| `platform: linux/amd64` | Needed on Apple Silicon Macs because SQL Server image is AMD64 |
+| `container_name` | Gives the container a readable name |
+| `ACCEPT_EULA` | Accepts SQL Server license terms |
+| `MSSQL_SA_PASSWORD` | Sets the administrator password |
+| `MSSQL_PID: Developer` | Uses Developer edition for local development |
+| `ports: "1433:1433"` | Makes SQL Server available on `localhost:1433` |
+| `volumes` | Keeps database files after container restart |
+| `restart: unless-stopped` | Restarts the container unless it is manually stopped |
+
+Then the service can be started with:
+
+```bash
+docker compose up -d
+```
+
+Status can be checked with:
+
+```bash
+docker compose ps
+```
+
+Logs can be followed with:
+
+```bash
+docker compose logs -f
+```
+
+The key thing is to wait until SQL Server is ready for client connections.
+
+## Apple Silicon Warning
+
+On Apple Silicon Macs, SQL Server is not as native as PostgreSQL or many other containers. A common warning is:
+
+```text
+The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8)
+```
+
+This means the Mac is ARM64, while the SQL Server image is AMD64.
+
+The local fix is:
+
+```yaml
+platform: linux/amd64
+```
+
+This allows Docker to run the image through emulation. For learning and testing, that can be acceptable. For serious professional workloads, it is better to use a proper remote SQL Server, a company development database, or an x86 64 machine.
+
+## Connecting with DBeaver
+
+DBeaver can be used to connect to the SQL Server container.
+
+Connection settings:
+
+| Field | Value |
+|---|---|
+| Database type | Microsoft SQL Server |
+| Host | `localhost` |
+| Port | `1433` |
+| Database | `master` |
+| Username | `sa` |
+| Password | Password from `.env` |
+| Authentication | SQL Server Authentication |
+| Trust server certificate | Enabled |
+
+If the connection fails, the most common causes are:
+
+| Problem | Fix |
+|---|---|
+| SQL Server is still starting | Wait and check logs |
+| Wrong password | Check `.env` |
+| Port conflict | Check if another service uses port `1433` |
+| SSL or certificate error | Enable trust server certificate |
+| Container stopped | Run `docker compose ps` and `docker compose logs -f` |
+
+## Where SQL Server Stores Data
+
+SQL Server is not like SQLite.
+
+SQLite is usually one file:
+
+```text
+my_database.sqlite
+```
+
+SQL Server usually uses several files:
+
+| File type | Example | Purpose |
+|---|---|---|
+| Data file | `MyDb.mdf` | Tables, indexes, and data |
+| Log file | `MyDb_log.ldf` | Transaction log |
+| Additional data file | `MyDb_2.ndf` | Optional extra data file |
+
+Inside the container, SQL Server stores files under:
+
+```text
+/var/opt/mssql/data/
+```
+
+But because the Compose file uses a Docker volume:
+
+```yaml
+volumes:
+  - sqlserver_data:/var/opt/mssql
+```
+
+the data is persisted by Docker even if the container is removed.
+
+That is an important point. Removing the container does not necessarily remove the database.
+
+## Removing the Container
+
+To stop and remove the SQL Server container while keeping the data volume:
+
+```bash
+docker compose down
+```
+
+This removes the container and network created by Compose, but keeps the volume.
+
+If the service is started again:
+
+```bash
+docker compose up -d
+```
+
+the database files should still be there.
+
+## Removing Everything
+
+To remove the container and the volume with database files:
+
+```bash
+docker compose down -v
+```
+
+This is the clean reset command.
+
+It removes:
+
+```text
+container
+network
+volume with SQL Server database files
+```
+
+After this, the local database data is gone.
+
+## Removing the Downloaded SQL Server Image
+
+The SQL Server image is the downloaded template. To remove it:
+
+```bash
+docker rmi mcr.microsoft.com/mssql/server:2022-latest
+```
+
+This does not directly delete the database volume. It only removes the downloaded image.
+
+The difference is:
+
+| Command | Deletes |
+|---|---|
+| `docker compose down` | Container and network |
+| `docker compose down -v` | Container, network, and database volume |
+| `docker rmi mcr.microsoft.com/mssql/server:2022-latest` | Downloaded SQL Server image |
+
+So the cleanest full removal is:
+
+```bash
+docker compose down -v
+docker rmi mcr.microsoft.com/mssql/server:2022-latest
+```
+
+## What This Shows
+
+The most useful Docker lesson is that containers are disposable, but volumes are persistent.
+
+That is exactly what makes Docker powerful. A local SQL Server can be created, tested, connected to from DBeaver, used by Python scripts, and removed when it is no longer needed.
+
+For local development, this is much cleaner than installing every service directly into the operating system.
+
+A reusable pattern is:
+
+```text
+Use local virtual environments for Python code.
+Use Docker Compose for services.
+Use volumes for data that should survive.
+Use down -v only when a clean reset is really needed.
+```
+
+This is a simple but professional workflow. It makes experimentation safer while keeping the machine understandable.
